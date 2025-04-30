@@ -13,33 +13,24 @@ jobs:
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
       
+
       - name: Check out repository code
         uses: actions/checkout@v4
 
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-        
-      # Install the .NET Core workload
-      - name: Install .NET Core
+      - name: Install .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-         dotnet-version: 8.0.x
+          dotnet-version: 8.0.x
 
-      # Restore the application to populate the obj folder with RuntimeIdentifiers
-      - name: Restore the application
-        run: dotnet workload restore   
-        
-      - run: echo "🖥️ The workflow is now ready to publish application on the runner."
-        
-      # Build
-      - name: Publish
-        run: dotnet publish
+      - name: Restore workloads
+        run: dotnet workload restore
 
-      # Upload the TLS package
-      - name: Upload build artifacts
+      - name: Publish for Linux ARM64
+        run: dotnet publish TaikoLocalServer/TaikoLocalServer.csproj -c Release -r linux-arm64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Upload ARM64 build artifact
         uses: actions/upload-artifact@v4
         with:
-         name: TLS ${{ env.Major_Version_Number }}.${{ env.Minor_Version_Number }}.${{ env.Build_Number }}
-         path: ${{ github.workspace }}\TaikoLocalServer\bin\Release\net8.0\win-x64\publish
-         include-hidden-files: true
-         
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+          name: TLS-${{ env.Major_Version_Number }}.${{ env.Minor_Version_Number }}.${{ env.Build_Number }}-linux-arm64
+          path: ${{ github.workspace }}/TaikoLocalServer/bin/Release/net8.0/linux-arm64/publish
+          include-hidden-files: true
